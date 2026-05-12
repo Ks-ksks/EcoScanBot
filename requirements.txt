@@ -1,0 +1,12 @@
+python-telegram-bot==20.7
+opencv-python-headless
+psycopg2-binary
+fuzzywuzzy
+python-Levenshtein
+openai
+nest-asyncio
+fastapi
+uvicorn
+pytesseract
+pillow
+numpy
