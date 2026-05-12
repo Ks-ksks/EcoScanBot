@@ -349,7 +349,7 @@ email_reciever = "kavakhonina@edu.hse.ru"
 
 async def n_greet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    keyboard = [[InlineKeyboardButton("🚀 Начать", data="start")]]
+    keyboard = [[InlineKeyboardButton("🚀 Начать", callback_data="start")]]
     reply = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(f"🌱 **Добро пожаловать, {user.first_name}!**\n\n"
@@ -362,10 +362,10 @@ async def n_greet(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply, parse_mode='Markdown')
 
 async def main_menu(message, first_name):
-    keyboard = [[InlineKeyboardButton("📸 Анализ чека", data="scan_receipt")],
-        [InlineKeyboardButton("ℹ️ О проекте", data="about")],
-        [InlineKeyboardButton("📧 Связь с разработчиками", data="contact")],
-        [InlineKeyboardButton("❓ Помощь", data="help")]]
+    keyboard = [[InlineKeyboardButton("📸 Анализ чека", callback_data="scan_receipt")],
+        [InlineKeyboardButton("ℹ️ О проекте", callback_data="about")],
+        [InlineKeyboardButton("📧 Связь с разработчиками", callback_data="contact")],
+        [InlineKeyboardButton("❓ Помощь", callback_data="help")]]
     reply = InlineKeyboardMarkup(keyboard)
 
     await message.reply_text(f"🌱 **Привет, {first_name}!**\n\n"
@@ -378,11 +378,11 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    if query.data == "start":
+    if query.callback_data == "start":
         await main_menu(query.message, update.effective_user.first_name)
 
-    elif query.data == "scan_receipt":
-        keyboard = [[InlineKeyboardButton("🔙 Вернуться в меню", data="to_menu")]]
+    elif query.callback_data == "scan_receipt":
+        keyboard = [[InlineKeyboardButton("🔙 Вернуться в меню", callback_data="to_menu")]]
         reply = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("📸 **Отправьте фото чека**\n\n"
             "Советы для лучшего распознавания\n"
@@ -392,8 +392,8 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "После отправки фото бот проведёт анализ и покажет результат.",
             reply_markup=reply, parse_mode='Markdown')
 
-    elif query.data == "about":
-        keyboard = [[InlineKeyboardButton("🔙 Главное меню", data="to_menu")]]
+    elif query.callback_data == "about":
+        keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data="to_menu")]]
         reply = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("🌱 **О проекте EcoScan**\n\n"
             "Этот бот помогает оценить углеродный след продуктов из ваших чеков.\n\n"
@@ -409,9 +409,9 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Мы стараемся помочь каждому сделать экологичный выбор и снизить свой углеродный след.",
             reply_markup=keyboard, parse_mode='Markdown')
 
-    elif query.data == "contact":
-        keyboard = [[InlineKeyboardButton("📝 Написать разработчикам", data="fb_start")],
-                    [InlineKeyboardButton("🔙 Главное меню", data="to_menu")]]
+    elif query.callback_data == "contact":
+        keyboard = [[InlineKeyboardButton("📝 Написать разработчикам", callback_data="fb_start")],
+                    [InlineKeyboardButton("🔙 Главное меню", callback_data="to_menu")]]
         reply = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("📧 **Связь с разработчиками**\n\n"
             "Вы можете отправить нам сообщение прямо в боте!\n\n"
@@ -423,9 +423,9 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "👇 Нажмите «Написать разработчикам», чтобы начать.",
             reply_markup=reply, parse_mode='Markdown')
 
-    elif query.data == "fb_start":
+    elif query.callback_data == "fb_start":
         user_states[update.effective_user.id] = {"waiting_fb": True}
-        keyboard = [[InlineKeyboardButton("🔙 Отмена", data="contact")]]
+        keyboard = [[InlineKeyboardButton("🔙 Отмена", callback_data="contact")]]
         reply = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("📝 **Написать разработчикам**\n\n"
             "Напишите ваше обращение в ответ на это сообщение.\n\n"
@@ -433,8 +433,8 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "✏️ **Напишите ваше сообщение**",
             reply_markup=reply, parse_mode='Markdown')
 
-    elif query.data == "help":
-        keyboard = [[InlineKeyboardButton("🔙 Главное меню", data="to_menu")]]
+    elif query.callback_data == "help":
+        keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data="to_menu")]]
         reply = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("❓ **Помощь**\n\n"
             "📸 **Как пользоваться**\n"
@@ -454,7 +454,7 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Даётся, если в чеке есть продукты с высоким CO₂ (>2 кг/кг).",
             reply_markup=reply, parse_mode='Markdown')
 
-    elif query.data == "to_menu":
+    elif query.callback_data == "to_menu":
         await main_menu(query.message, update.effective_user.first_name)
 
 async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -533,8 +533,8 @@ async def handle_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def photo_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await handle_foto(update, context)
 
-    keyboard = [[InlineKeyboardButton("📸 Анализировать ещё чек", data="scan_receipt")],
-        [InlineKeyboardButton("🏠 Главное меню", data="to_menu")]]
+    keyboard = [[InlineKeyboardButton("📸 Анализировать ещё чек", callback_data="scan_receipt")],
+        [InlineKeyboardButton("🏠 Главное меню", callback_data="to_menu")]]
     reply = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text("✨ **Что дальше?** ✨\n\n"
