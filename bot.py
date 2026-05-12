@@ -44,7 +44,7 @@ OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 DB_PASS = os.environ.get("DB_PASSWORD")
 EMAIL_PASS = os.environ.get("EMAIL_PASSWORD")
 
-client = OpenAI(api_key=OPENAI_KEY)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 checks = 0
 
 DB_HOST = "eco-scan-ecobot.e.aivencloud.com"
