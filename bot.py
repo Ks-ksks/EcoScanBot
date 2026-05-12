@@ -296,6 +296,11 @@ async def handle_foto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo = update.message.photo[-1]
         receipt_txt = await img_txt(photo)
 
+        # ВРЕМЕННО: сохраняем текст в файл и принтуем в консоль
+        print("=== НАЧАЛО РАСПОЗНАННОГО ТЕКСТА ===", flush=True)
+        print(receipt_txt, flush=True)
+        print("=== КОНЕЦ РАСПОЗНАННОГО ТЕКСТА ===", flush=True)
+
         if not receipt_txt or len(receipt_txt) < 20:
             await msg_stat.edit_text("😔 Не удалось распознать текст. Пожалуйста, попробуйте:\n• сфотографировать крупнее,\n• улучшить освещение.")
             return
