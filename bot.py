@@ -395,7 +395,7 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "about":
         keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data="to_menu")]]
         reply = InlineKeyboardMarkup(keyboard)
-        await query.message.reply_text("🌱 **О проекте EcoScan**\n\n...",
+        await query.message.reply_text("🌱 **О проекте EcoScan**\n\n",
             "Этот бот помогает оценить углеродный след продуктов из ваших чеков.\n\n"
             "📊 **Как это работает**\n"
             "• Бот распознаёт товары из чека с помощью OCR и ChatGPT\n"
