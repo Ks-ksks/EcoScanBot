@@ -364,7 +364,7 @@ async def n_greet(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def main_menu(message, first_name):
     keyboard = [[InlineKeyboardButton("📸 Анализ чека", callback_data="scan_receipt")],
         [InlineKeyboardButton("ℹ️ О проекте", callback_data="about")],
-        [InlineKeyboardButton("📧 Связь с разработчиками", callback_data="contact")],
+        #[InlineKeyboardButton("📧 Связь с разработчиками", callback_data="contact")],
         [InlineKeyboardButton("❓ Помощь", callback_data="help")]]
     reply = InlineKeyboardMarkup(keyboard)
 
@@ -457,19 +457,14 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "to_menu":
         await main_menu(query.message, update.effective_user.first_name)
 
-async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+""" async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_name = update.effective_user.first_name
     username = update.effective_user.username or "нет username"
 
-    print(f"=== ОБРАТНАЯ СВЯЗЬ от {user_name} ===", flush=True)
-
     if user_states.get(user_id, {}).get("waiting_fb"):
-        print("Пользователь в режиме обратной связи", flush=True)
         user_txt = update.message.text
         user_ph = update.message.photo
-
-        print(f"Текст сообщения: {user_txt[:100]}", flush=True)
 
         msg = MIMEMultipart()
         msg["From"] = email_sender
@@ -492,16 +487,11 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg.attach(MIMEText(body, "html"))
 
         try:
-            print("Пытаюсь подключиться к SMTP...", flush=True)
             with smtplib.SMTP_SSL(SMTP_server, 465) as server:
-                print("Подключено, логинюсь...", flush=True)
                 server.login(email_sender, email_pass)
-                print("Успешно залогинилась, отправляю...", flush=True)
                 server.send_message(msg)
-                print("Письмо отправлено!", flush=True)
 
             if user_ph:
-                print("Есть фото, отправляю...", flush=True)
                 photo = user_ph[-1]
                 file = await photo.get_file()
                 ph_bytes = await file.download_as_bytearray()
@@ -514,10 +504,9 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 image = MIMEImage(ph_bytes, name="screenshot.jpg")
                 msg_photo.attach(image)
 
-                with smtplib.SMTP(SMTP_server, SMTP_port) as server:
+                with smtplib.SMTP_SSL(SMTP_server, 465) as server:
                     server.login(email_sender, email_pass)
                     server.send_message(msg_photo)
-                print("Фото отправлено!", flush=True)
 
             await update.message.reply_text("✅ **Сообщение отправлено!**\n\n"
                 "Спасибо за вашу обратную связь! Разработчики рассмотрят ваше сообщение и ответят в ближайшее время.\n\n"
@@ -525,7 +514,7 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='Markdown')
 
         except Exception as e:
-            print(f"ОШИБКА: {e}", flush=True)
+            print(f"Ошибка отправки: {e}", flush=True)
             await update.message.reply_text("❌ **Ошибка отправки**\n\n"
                 "Не удалось отправить сообщение. Пожалуйста, попробуйте позже.\n\n"
                 "🔙 Вернуться в главное меню — нажмите /start",
@@ -533,8 +522,7 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         user_states.pop(user_id, None)
     else:
-        print("Пользователь не в режиме обратной связи", flush=True)
-        await n_greet(update, context)
+        await n_greet(update, context)"""
 
 async def handle_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -598,7 +586,7 @@ async def main():
 
     app.add_handler(MessageHandler(filters.PHOTO, photo_menu))
 
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, feedback))
+    #app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, feedback))
 
     app.add_handler(CallbackQueryHandler(button_cb))
 
