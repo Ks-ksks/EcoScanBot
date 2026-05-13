@@ -493,8 +493,7 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         try:
             print("Пытаюсь подключиться к SMTP...", flush=True)
-            with smtplib.SMTP(SMTP_server, SMTP_port) as server:
-                server.starttls()
+            with smtplib.SMTP_SSL(SMTP_server, 465) as server:
                 print("Подключено, логинюсь...", flush=True)
                 server.login(email_sender, email_pass)
                 print("Успешно залогинилась, отправляю...", flush=True)
@@ -516,7 +515,6 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 msg_photo.attach(image)
 
                 with smtplib.SMTP(SMTP_server, SMTP_port) as server:
-                    server.starttls()
                     server.login(email_sender, email_pass)
                     server.send_message(msg_photo)
                 print("Фото отправлено!", flush=True)
