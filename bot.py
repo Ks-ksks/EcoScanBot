@@ -395,7 +395,7 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "about":
         keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data="to_menu")]]
         reply = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text("🌱 **О проекте EcoScan**\n\n"
+        await query.message.reply_text("🌱 **О проекте EcoScan**\n\n...",
             "Этот бот помогает оценить углеродный след продуктов из ваших чеков.\n\n"
             "📊 **Как это работает**\n"
             "• Бот распознаёт товары из чека с помощью OCR и ChatGPT\n"
@@ -407,7 +407,7 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "парниковых газов. Каждый осознанный выбор имеет значение!\n\n"
             "💚 **Наша миссия**\n"
             "Мы стараемся помочь каждому сделать экологичный выбор и снизить свой углеродный след.",
-            reply_markup=keyboard, parse_mode='Markdown')
+            reply_markup=reply, parse_mode='Markdown')
 
     elif query.data == "contact":
         keyboard = [[InlineKeyboardButton("📝 Написать разработчикам", callback_data="fb_start")],
