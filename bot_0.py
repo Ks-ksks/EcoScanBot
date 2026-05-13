@@ -457,7 +457,72 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "to_menu":
         await main_menu(query.message, update.effective_user.first_name)
 
-# здесь была кнопка фидбека
+async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user_name = update.effective_user.first_name
+    username = update.effective_user.username or "нет username"
+
+    if user_states.get(user_id, {}).get("waiting_fb"):
+        user_txt = update.message.text
+        user_ph = update.message.photo
+
+        msg = MIMEMultipart()
+        msg["From"] = email_sender
+        msg["To"] = email_reciever
+        msg["Subject"] = f"Обратная связь EcoScan от {user_name}"
+
+        body = f"""
+        <html>
+        <body>
+        <h2>Новое сообщение от пользователя!</h2>
+        <p><b>Пользователь:</b> {user_name} (@{username})</p>
+        <p><b>ID:</b> {user_id}</p>
+        <p><b>Сообщение:</b></p>
+        <p>{user_txt}</p>
+        <p><b>Время:</b> {update.message.date}</p>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, "html"))
+
+        try:
+            with smtplib.SMTP_SSL(SMTP_server, 465) as server:
+                server.login(email_sender, email_pass)
+                server.send_message(msg)
+
+            if user_ph:
+                photo = user_ph[-1]
+                file = await photo.get_file()
+                ph_bytes = await file.download_as_bytearray()
+
+                msg_photo = MIMEMultipart()
+                msg_photo["From"] = email_sender
+                msg_photo["To"] = email_reciever
+                msg_photo["Subject"] = f"Скриншот от {user_name}"
+
+                image = MIMEImage(ph_bytes, name="screenshot.jpg")
+                msg_photo.attach(image)
+
+                with smtplib.SMTP_SSL(SMTP_server, 465) as server:
+                    server.login(email_sender, email_pass)
+                    server.send_message(msg_photo)
+
+            await update.message.reply_text("✅ **Сообщение отправлено!**\n\n"
+                "Спасибо за вашу обратную связь! Разработчики рассмотрят ваше сообщение и ответят в ближайшее время.\n\n"
+                "🔙 Вернуться в главное меню — нажмите /start",
+                parse_mode='Markdown')
+
+        except Exception as e:
+            print(f"Ошибка отправки: {e}", flush=True)
+            await update.message.reply_text("❌ **Ошибка отправки**\n\n"
+                "Не удалось отправить сообщение. Пожалуйста, попробуйте позже.\n\n"
+                "🔙 Вернуться в главное меню — нажмите /start",
+                parse_mode='Markdown')
+
+        user_states.pop(user_id, None)
+    else:
+        await n_greet(update, context)
 
 async def handle_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
