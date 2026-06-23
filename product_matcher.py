@@ -55,8 +55,6 @@ def is_false_match(product_name, receipt_line, match_score=100):
     if 'святой' in prod_l and match_score < 75:
         return True
 
-    if 'яйцо столовое' in prod_l and match_score < 75:
-        return True
 
     return False
 
