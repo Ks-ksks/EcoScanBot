@@ -43,6 +43,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 DB_PASS = os.environ.get("DB_PASSWORD")
 EMAIL_PASS = os.environ.get("EMAIL_PASSWORD")
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID")  # ДОБАВЛЕНО: ID администратора для Telegram
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 checks = 0
@@ -458,7 +459,7 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await main_menu(query.message, update.effective_user.first_name)
 
 async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка сообщений обратной связи"""
+    """Обработка сообщений обратной связи через Telegram и Email"""
     user_id = update.effective_user.id
     user_name = update.effective_user.first_name
     username = update.effective_user.username or "нет username"
@@ -467,6 +468,30 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_txt = update.message.text
         user_ph = update.message.photo
 
+        # ОТПРАВКА В TELEGRAM АДМИНИСТРАТОРУ (ДОБАВЛЕНО)
+        admin_chat_id = ADMIN_CHAT_ID
+        if admin_chat_id:
+            try:
+                message_for_admin = (f"📩 **Новое сообщение от пользователя!**\n\n"
+                    f"👤 **Имя:** {user_name}\n"
+                    f"🆔 **Username:** @{username}\n"
+                    f"🔢 **ID:** {user_id}\n"
+                    f"📝 **Сообщение:**\n{user_txt}")
+                
+                await context.bot.send_message(chat_id=admin_chat_id,
+                    text=message_for_admin,
+                    parse_mode='Markdown')
+                
+                # Если есть фото, отправляем и его
+                if user_ph:
+                    photo = user_ph[-1]
+                    file = await photo.get_file()
+                    ph_bytes = await file.download_as_bytearray()
+                    await context.bot.send_photo(chat_id=admin_chat_id, photo=ph_bytes)
+            except Exception as e:
+                print(f"Ошибка отправки в Telegram: {e}")
+
+        # ОТПРАВКА ПО EMAIL (существующий код)
         msg = MIMEMultipart()
         msg["From"] = email_sender
         msg["To"] = email_reciever
@@ -516,8 +541,8 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "🔙 Вернуться в главное меню — нажмите /start",
                 parse_mode='Markdown')
 
-        except:
-            print("Ошибка")
+        except Exception as e:
+            print(f"Ошибка отправки email: {e}")
             await update.message.reply_text("❌ **Ошибка отправки**\n\n"
                 "Не удалось отправить сообщение. Пожалуйста, попробуйте позже.\n\n"
                 "🔙 Вернуться в главное меню — нажмите /start",
