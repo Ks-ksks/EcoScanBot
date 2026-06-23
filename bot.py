@@ -12,12 +12,8 @@ import re
 import asyncio
 import logging
 import random
-import smtplib
 import threading
 import time
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.image import MIMEImage
 from typing import Optional, List
 
 import numpy as np
@@ -42,8 +38,7 @@ pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 DB_PASS = os.environ.get("DB_PASSWORD")
-EMAIL_PASS = os.environ.get("EMAIL_PASSWORD")
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID")  # ДОБАВЛЕНО: ID администратора для Telegram
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID")
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 checks = 0
@@ -342,12 +337,6 @@ async def handle_foto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 user_states = {}
 
-SMTP_server = "smtp.yandex.ru"
-SMTP_port = 587
-email_sender = "kavakhonina@edu.hse.ru"
-email_pass = EMAIL_PASS
-email_reciever = "kavakhonina@edu.hse.ru"
-
 async def n_greet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     keyboard = [[InlineKeyboardButton("🚀 Начать", callback_data="start")]]
@@ -459,16 +448,15 @@ async def button_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await main_menu(query.message, update.effective_user.first_name)
 
 async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка сообщений обратной связи через Telegram и Email"""
+    """Обработка сообщений обратной связи через Telegram"""
     user_id = update.effective_user.id
     user_name = update.effective_user.first_name
     username = update.effective_user.username or "нет username"
 
     if user_states.get(user_id, {}).get("waiting_fb"):
         user_txt = update.message.text
-        user_ph = update.message.photo
 
-        # ОТПРАВКА В TELEGRAM АДМИНИСТРАТОРУ (ДОБАВЛЕНО)
+        # Отправка в Telegram администратору
         admin_chat_id = ADMIN_CHAT_ID
         if admin_chat_id:
             try:
@@ -482,70 +470,20 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     text=message_for_admin,
                     parse_mode='Markdown')
                 
-                # Если есть фото, отправляем и его
-                if user_ph:
-                    photo = user_ph[-1]
-                    file = await photo.get_file()
-                    ph_bytes = await file.download_as_bytearray()
-                    await context.bot.send_photo(chat_id=admin_chat_id, photo=ph_bytes)
+                await update.message.reply_text("✅ **Сообщение отправлено!**\n\n"
+                    "Спасибо за вашу обратную связь! Разработчики рассмотрят ваше сообщение и ответят в ближайшее время.\n\n"
+                    "🔙 Вернуться в главное меню — нажмите /start",
+                    parse_mode='Markdown')
             except Exception as e:
-                print(f"Ошибка отправки в Telegram: {e}")
-
-        # ОТПРАВКА ПО EMAIL (существующий код)
-        msg = MIMEMultipart()
-        msg["From"] = email_sender
-        msg["To"] = email_reciever
-        msg["Subject"] = f"Обратная связь EcoScan от {user_name}"
-
-        body = f"""
-        <html>
-        <body>
-        <h2>Новое сообщение от пользователя!</h2>
-        <p><b>Пользователь:</b> {user_name} (@{username})</p>
-        <p><b>ID:</b> {user_id}</p>
-        <p><b>Сообщение:</b></p>
-        <p>{user_txt}</p>
-        <p><b>Время:</b> {update.message.date}</p>
-        </body>
-        </html>
-        """
-
-        msg.attach(MIMEText(body, "html"))
-
-        try:
-            with smtplib.SMTP(SMTP_server, SMTP_port) as server:
-                server.starttls()
-                server.login(email_sender, email_pass)
-                server.send_message(msg)
-
-            if user_ph:
-                photo = user_ph[-1]
-                file = await photo.get_file()
-                ph_bytes = await file.download_as_bytearray()
-
-                msg_photo = MIMEMultipart()
-                msg_photo["From"] = email_sender
-                msg_photo["To"] = email_reciever
-                msg_photo["Subject"] = f"Скриншот от {user_name}"
-
-                image = MIMEImage(ph_bytes, name="screenshot.jpg")
-                msg_photo.attach(image)
-
-                with smtplib.SMTP(SMTP_server, SMTP_port) as server:
-                    server.starttls()
-                    server.login(email_sender, email_pass)
-                    server.send_message(msg_photo)
-
-            await update.message.reply_text("✅ **Сообщение отправлено!**\n\n"
-                "Спасибо за вашу обратную связь! Разработчики рассмотрят ваше сообщение и ответят в ближайшее время.\n\n"
-                "🔙 Вернуться в главное меню — нажмите /start",
-                parse_mode='Markdown')
-
-        except Exception as e:
-            print(f"Ошибка отправки email: {e}")
-            await update.message.reply_text("❌ **Ошибка отправки**\n\n"
-                "Не удалось отправить сообщение. Пожалуйста, попробуйте позже.\n\n"
-                "🔙 Вернуться в главное меню — нажмите /start",
+                print(f"Ошибка отправки: {e}")
+                await update.message.reply_text("❌ **Ошибка отправки**\n\n"
+                    "Не удалось отправить сообщение. Пожалуйста, попробуйте позже.\n\n"
+                    "🔙 /start",
+                    parse_mode='Markdown')
+        else:
+            await update.message.reply_text("❌ **Ошибка**\n\n"
+                "Не найден ID администратора. Пожалуйста, сообщите разработчикам о проблеме.\n\n"
+                "🔙 /start",
                 parse_mode='Markdown')
 
         user_states.pop(user_id, None)
